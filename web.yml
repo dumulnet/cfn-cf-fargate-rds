@@ -1,0 +1,119 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Build a Unique Domain Hosting Environment with Amazon Route 53, Amazon CloudFront, and Amazon S3
+
+Parameters:
+  DomainName:
+    Description: Domain Name
+    Type: String
+
+  WebSubDomainName:
+    Description: Please enter a sub-domain name for web.
+    Type: String
+    Default: www
+
+  HostedZoneId:
+    Description: Host Zone ID
+    Type: String
+
+  CertificateArn:
+    Description: Certificate ARN
+    Type: String
+
+  EnvironmentName:
+    Description: The prefix name of the project. ex) gmf -> gmfvpc
+    Type: String
+
+Resources:
+
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${EnvironmentName}-web-${AWS::Region}-${AWS::AccountId}
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName
+
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    DependsOn:
+      - CloudFrontOriginAccessIdentity
+    Properties:
+      Bucket: !Sub ${S3Bucket}
+      PolicyDocument:
+        Statement:
+          -
+            Sid: PolicyForCloudFrontPrivateContent
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:${AWS::Partition}:iam::cloudfront:user/CloudFront Origin Access Identity ${CloudFrontOriginAccessIdentity}
+            Action: s3:GetObject
+            Resource: !Sub arn:${AWS::Partition}:s3:::${S3Bucket}/*
+
+  CloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: Unique Domain Hosting Environment
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    DependsOn:
+      - S3Bucket
+      - CloudFrontOriginAccessIdentity
+    Properties:
+      DistributionConfig:
+        Aliases:
+          - !Sub ${WebSubDomainName}.${DomainName}
+        Origins:
+          -
+            DomainName: !Sub ${S3Bucket}.s3.${AWS::Region}.amazonaws.com
+            Id: !Sub ${S3Bucket}.s3.${AWS::Region}.amazonaws.com
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}
+        DefaultCacheBehavior:
+          TargetOriginId: !Sub ${S3Bucket}.s3.${AWS::Region}.amazonaws.com
+          Compress: true
+          AllowedMethods:
+            - HEAD
+            - GET
+            - OPTIONS
+          CachedMethods:
+            - HEAD
+            - GET
+            - OPTIONS
+          ViewerProtocolPolicy: redirect-to-https
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+        CustomErrorResponses:
+          -
+            ErrorCode: 403
+            ResponsePagePath: /index.html
+            ResponseCode: 200
+            ErrorCachingMinTTL: 0
+          -
+            ErrorCode: 404
+            ResponsePagePath: /index.html
+            ResponseCode: 200
+            ErrorCachingMinTTL: 0
+        PriceClass: PriceClass_200
+        Enabled: true
+        ViewerCertificate:
+          AcmCertificateArn: !Ref CertificateArn
+          MinimumProtocolVersion: TLSv1.2_2021
+          SslSupportMethod: sni-only
+        Restrictions:
+          GeoRestriction:
+            RestrictionType: none
+        HttpVersion: http2
+        DefaultRootObject: index.html
+        IPV6Enabled: true
+
+  Route53RecordSet:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Sub ${WebSubDomainName}.${DomainName}
+      HostedZoneId: !ImportValue
+        Fn::Sub: ${HostedZoneId}
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt CloudFrontDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2

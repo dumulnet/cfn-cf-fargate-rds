@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Domain & Certificate stack
+  
+Parameters:
+  DomainName:
+    Description: Please enter a domain name.
+    Type: String
+    Default: genmatefield.com
+
+  WebSubDomainName:
+    Description: Please enter a sub-domain name for web.
+    Type: String
+    Default: tool
+
+  APISubDomainName:
+    Description: Please enter a sub-domain name for api.
+    Type: String
+    Default: api
+
+  EnvironmentName:
+    Description: The prefix name of the project. ex) gf -> gfvpc
+    Type: String
+
+Resources:
+  DNS:
+    Type: AWS::Route53::HostedZone
+    Properties:
+      HostedZoneConfig:
+        Comment: !Sub ${DomainName} ${EnvironmentName} Hosted Zone
+      HostedZoneTags:
+        - Key: Name
+          Value: !Ref DomainName
+      Name: !Ref DomainName
+
+  WebCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Sub ${WebSubDomainName}.${DomainName}
+      DomainValidationOptions:
+        -
+          DomainName: !Sub ${WebSubDomainName}.${DomainName}
+          HostedZoneId: !Ref DNS
+      ValidationMethod: DNS
+
+  APICertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Sub ${APISubDomainName}.${DomainName}
+      DomainValidationOptions:
+        -
+          DomainName: !Sub ${APISubDomainName}.${DomainName}
+          HostedZoneId: !Ref DNS
+      ValidationMethod: DNS
+
+Outputs:
+  HostedZoneID:
+    Description: Hosted Zone ID for domain
+    Value: !Ref DNS
+    Export:
+      Name: !Sub ${AWS::StackName}-HostedZoneID
+  
+  NameServers:
+    Description: The list of name server for the domain
+    Value: !Join [ ",", !GetAtt DNS.NameServers ]
+    Export:
+      Name: !Sub ${AWS::StackName}-NameServerList
+
+  WebCertificateId:
+    Description: Web Certificate ID
+    Value: !Ref WebCertificate
+    Export:
+      Name: !Sub ${AWS::StackName}-WebCertificateID
+
+  APICertificateId:
+    Description: API Certificate ID
+    Value: !Ref APICertificate
+    Export:
+      Name: !Sub ${AWS::StackName}-APICertificateID
