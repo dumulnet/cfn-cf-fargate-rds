@@ -34,12 +34,30 @@ Parameters:
   WebsiteBucket:
     Type: String
     Description: The bucket name in the S3 where the website is served
-    AllowedPattern: ^[0-9a-z]+([0-9a-z-.]*[0-9a-z])*$
-    ConstraintDescription: Bucket name can include numbers, lowercase letters, periods (.), and hyphens (-). It cannot start or end with a hyphen (-).
+
+# CodePipeline Notification
+
+  NotificationRuleName:
+    Description: Set if you wish to override the name given to the CodeStar Notification Rule. Defaults to the value of the CodePipeline parameter.
+    Type: String
+    Default: ''
+    MaxLength: 64
+
+  AlertDetailType:
+    Description: The level of detail to include in the notifications for this resource. (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codestarnotifications-notificationrule.html)
+    Default: FULL
+    Type: String
+    AllowedValues:
+      - FULL
+      - BASIC
 
   EnvironmentName:
     Description: The prefix name of the project. ex) gmf -> gmfvpc
     Type: String
+
+
+Conditions:
+  NotificationRuleNameIsSet: !Not [!Equals [ !Ref NotificationRuleName, '' ]]
 
 Resources:
 
@@ -110,11 +128,11 @@ Resources:
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/standard:4.0
+        Image: aws/codebuild/standard:6.0
       Source:
         Type: CODEPIPELINE
-        BuildSpec:
-          !Sub |
+        BuildSpec: !Sub
+          - |
             version: 0.2
             phases:
               install:
@@ -125,7 +143,12 @@ Resources:
                   - npm run build
               post_build:
                 commands:
-                  - aws s3 sync ${WebsiteSourceDirectory} s3://${WebsiteBucket} --delete
+                  - aws s3 sync ${WebsiteSourceDirectory} s3://${HostedBucket} --delete
+                  - echo "If cloudfront invalidation is needed ..."
+                  - echo "aws cloudfront create-invalidation --distribution-id [CloudFront distribution-id] --paths '/*.*'"
+
+          - HostedBucket: !ImportValue
+              Fn::Sub: "${WebsiteBucket}"
       Tags:
         - Key: Name
           Value: !Join ['-', [!Ref EnvironmentName, !Ref 'AWS::AccountId', 'BuildProj']]
@@ -248,5 +271,58 @@ Resources:
         - Key: Name
           Value: !Join ['-', [!Ref EnvironmentName, !Ref 'AWS::AccountId', 'BuildRole']]
 
+  PipelineNotificationsTopic:
+    Type: AWS::SNS::Topic
+  
+  PipelineNotificationsTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics:
+        - !Ref PipelineNotificationsTopic
+      PolicyDocument: 
+        Statement:
+        - Action: 'SNS:Publish'
+          Effect: Allow
+          Resource: !Ref PipelineNotificationsTopic
+          Principal:
+            Service: codestar-notifications.amazonaws.com
+  
+  NotificationRule:
+    Type: AWS::CodeStarNotifications::NotificationRule
+    Properties:
+      # Name is required, unlike for most resource types
+      Name: !If [ NotificationRuleNameIsSet, !Ref NotificationRuleName, !Ref Pipeline ]
+      Resource: !Sub 
+          - arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipeline}
+          - {CodePipeline: !Ref Pipeline }
+      DetailType: !Ref AlertDetailType
+      EventTypeIds:
+        - codepipeline-pipeline-pipeline-execution-failed
+        - codepipeline-pipeline-pipeline-execution-canceled
+        - codepipeline-pipeline-pipeline-execution-started
+        - codepipeline-pipeline-pipeline-execution-resumed
+        - codepipeline-pipeline-pipeline-execution-succeeded
+        - codepipeline-pipeline-pipeline-execution-superseded
+        - codepipeline-pipeline-manual-approval-needed
+      Targets:
+        - TargetType: SNS
+          TargetAddress: !Ref PipelineNotificationsTopic
 
+Outputs:
+  CodePipelineName:
+    Description: The Pipeline name
+    Value: !Ref Pipeline
+    Export:
+      Name: !Sub ${AWS::StackName}-CodePipelineName
 
+  SNSTopicArn:
+    Description: Arn of the SNS Topic that you can connect to AWS Chatbot
+    Value: !Ref PipelineNotificationsTopic
+    Export:
+      Name: !Sub ${AWS::StackName}-SNSTopicArn
+
+  SNSTopicName:
+    Description: Name of the SNS Topic that you can connect to AWS Chatbot
+    Value: !GetAtt PipelineNotificationsTopic.TopicName
+    Export:
+      Name: !Sub ${AWS::StackName}-SNSTopicName

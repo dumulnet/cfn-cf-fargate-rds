@@ -130,3 +130,9 @@ Outputs:
     Value: !GetAtt S3Bucket.Arn
     Export:
       Name: !Sub ${AWS::StackName}-WebsiteBucketArn
+
+  CloudFrontDistID:
+    Description: The CloudFront Distribution ID
+    Value: !Ref CloudFrontDistribution
+    Export:
+      Name: !Sub ${AWS::StackName}-CloudFrontDistID

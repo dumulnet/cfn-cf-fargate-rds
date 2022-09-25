@@ -122,6 +122,26 @@ Parameters:
     Description: The directory name in the repo where the website source is builded
     Default: dist
 
+  SiteDeployAlertDetailType:
+    Description: The level of detail to include in the notifications for this resource. (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codestarnotifications-notificationrule.html)
+    Default: FULL
+    Type: String
+    AllowedValues:
+      - FULL
+      - BASIC
+
+# Chatbot configuration
+  SiteChatbotConfigurationName:
+    Type: String
+    Description: (Required) The name of the configuration.
+
+  SiteSlackChannelId:
+    Type: String
+    Description: (Required) The ID of the Slack channel. To get the ID, open Slack, right click on the channel name in the left pane, then choose Copy Link. The channel ID is the 9-character string at the end of the URL. For example, ABCBBLZZZ.
+
+  SiteSlackWorkspaceId:
+    Type: String
+    Description: (Required) The ID of the Slack workspace authorized with AWS Chatbot. To get the workspace ID, you must perform the initial authorization flow with Slack in the AWS Chatbot console. Then you can copy and paste the workspace ID from the console. For more details, see steps 1-4 in Setting Up AWS Chatbot with Slack in the AWS Chatbot User Guide.
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -162,6 +182,10 @@ Metadata:
           - GitHubRepo
           - GitHubBranch
           - WebsiteSourceDirectory
+          - SiteDeployAlertDetailType
+          - SiteChatbotConfigurationName
+          - SiteSlackChannelId
+          - SiteSlackWorkspaceId
 
     ParameterLabels:
       EnvironmentName:
@@ -255,8 +279,27 @@ Resources:
         WebsiteBucket: !Sub
           - ${NestedStackName}-WebsiteBucket
           - { NestedStackName: !Select [1, !Split ["/", !Ref WebStack]] }
+        AlertDetailType: !Ref SiteDeployAlertDetailType
       Tags:
         - Key: Name
           Value: !Ref EnvironmentName
 
+  ChatbotStack:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${S3BucketName}.s3.amazonaws.com/chatbot.yml
+      TimeoutInMinutes: 20
+      Parameters:
+        EnvironmentName: !Ref EnvironmentName
+        ConfigurationName: !Ref SiteChatbotConfigurationName
+        SlackChannelId: !Ref SiteSlackChannelId
+        SlackWorkspaceId: !Ref SiteSlackWorkspaceId 
+        SnsTopicArns: !Sub
+          - ${NestedStackName}-SNSTopicArn
+          - { NestedStackName: !Select [1, !Split ["/", !Ref SitePipelineStack]] }
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName
 

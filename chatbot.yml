@@ -1,0 +1,90 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: AWS Chatbot Configuration
+Parameters:
+  ConfigurationName:
+    Type: String
+    Description: (Required) The name of the configuration.
+
+  GuardrailPolicies:
+    Type: CommaDelimitedList
+    Description: The list of IAM policy ARNs that are applied as channel guardrails. The AWS managed 'AdministratorAccess' policy is applied as a default if this is not set.
+
+  LoggingLevel:
+    Type: String
+    Description: Specifies the logging level for this configuration. This property affects the log entries pushed to Amazon CloudWatch Logs. Logging levels include ERROR, INFO, or NONE.
+    Default: ERROR
+    AllowedValues:
+      - ERROR
+      - INFO
+      - NONE
+
+  SlackChannelId:
+    Type: String
+    Description: (Required) The ID of the Slack channel. To get the ID, open Slack, right click on the channel name in the left pane, then choose Copy Link. The channel ID is the 9-character string at the end of the URL. For example, ABCBBLZZZ.
+
+  SlackWorkspaceId:
+    Type: String
+    Description: (Required) The ID of the Slack workspace authorized with AWS Chatbot. To get the workspace ID, you must perform the initial authorization flow with Slack in the AWS Chatbot console. Then you can copy and paste the workspace ID from the console. For more details, see steps 1-4 in Setting Up AWS Chatbot with Slack in the AWS Chatbot User Guide.
+
+  SnsTopicArns:
+    Type: CommaDelimitedList
+    Description: The ARNs of the SNS topics that deliver notifications to AWS Chatbot.
+
+  UserRoleRequired:
+    Type: String
+    Description: Enables use of a user role requirement in your chat configuration.
+    AllowedValues:
+      - false
+      - true
+
+  EnvironmentName:
+    Description: The prefix name of the project. ex) gf -> gfvpc
+    Type: String
+
+Resources:
+  SlackChannelConfiguration:
+    Type: AWS::Chatbot::SlackChannelConfiguration
+    Properties:
+      ConfigurationName: !Ref ConfigurationName
+      GuardrailPolicies: !Ref GuardrailPolicies
+      IamRoleArn: !GetAtt ChatbotIamRole.Arn
+      LoggingLevel: !Ref LoggingLevel
+      SlackChannelId: !Ref SlackChannelId
+      SlackWorkspaceId: !Ref SlackWorkspaceId
+      SnsTopicArns: !Ref SnsTopicArns
+      UserRoleRequired: !Ref UserRoleRequired
+
+
+  ChatbotIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: stack-drift-detected-chatbot-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: chatbot.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: stack-drift-detected-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudwatch:Describe*
+                  - cloudwatch:Get*
+                  - cloudwatch:List*
+                Resource:
+                  - "*"
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName
+          
+Outputs:
+  ChatbotConfigArn:
+    Description: The ARN of the Chatbot Slack configuration
+    Value: !Ref SlackChannelConfiguration
+    Export:
+      Name: !Sub ${AWS::StackName}-ChatbotConfigArn
