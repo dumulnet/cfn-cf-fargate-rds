@@ -5,9 +5,10 @@ Parameters:
     Type: String
     Description: (Required) The name of the configuration.
 
-  GuardrailPolicies:
-    Type: CommaDelimitedList
-    Description: The list of IAM policy ARNs that are applied as channel guardrails. The AWS managed 'AdministratorAccess' policy is applied as a default if this is not set.
+  # GuardrailPolicies:
+  #   Type: CommaDelimitedList
+  #   Description: The list of IAM policy ARNs that are applied as channel guardrails. The AWS managed 'AdministratorAccess' policy is applied as a default if this is not set.
+  #   Default: AdministratorAccess
 
   LoggingLevel:
     Type: String
@@ -27,12 +28,13 @@ Parameters:
     Description: (Required) The ID of the Slack workspace authorized with AWS Chatbot. To get the workspace ID, you must perform the initial authorization flow with Slack in the AWS Chatbot console. Then you can copy and paste the workspace ID from the console. For more details, see steps 1-4 in Setting Up AWS Chatbot with Slack in the AWS Chatbot User Guide.
 
   SnsTopicArns:
-    Type: CommaDelimitedList
+    Type: String
     Description: The ARNs of the SNS topics that deliver notifications to AWS Chatbot.
 
   UserRoleRequired:
     Type: String
     Description: Enables use of a user role requirement in your chat configuration.
+    Default: false
     AllowedValues:
       - false
       - true
@@ -46,12 +48,14 @@ Resources:
     Type: AWS::Chatbot::SlackChannelConfiguration
     Properties:
       ConfigurationName: !Ref ConfigurationName
-      GuardrailPolicies: !Ref GuardrailPolicies
+      #GuardrailPolicies: !Ref GuardrailPolicies
       IamRoleArn: !GetAtt ChatbotIamRole.Arn
       LoggingLevel: !Ref LoggingLevel
       SlackChannelId: !Ref SlackChannelId
       SlackWorkspaceId: !Ref SlackWorkspaceId
-      SnsTopicArns: !Ref SnsTopicArns
+      SnsTopicArns: 
+        - !ImportValue
+            Fn::Sub: ${SnsTopicArns}
       UserRoleRequired: !Ref UserRoleRequired
 
 
@@ -81,7 +85,7 @@ Resources:
       Tags:
         - Key: Name
           Value: !Ref EnvironmentName
-          
+
 Outputs:
   ChatbotConfigArn:
     Description: The ARN of the Chatbot Slack configuration

@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-
+Transform: AWS::Serverless-2016-10-31
 Description: F/E CI/CD pipeline
   
 Parameters:
@@ -50,6 +50,13 @@ Parameters:
     AllowedValues:
       - FULL
       - BASIC
+  NotificationTargetType:
+    Description: The target type. Can be an Amazon Simple Notification Service topic or AWS Chatbot client.
+    Default: SNS
+    Type: String
+    AllowedValues:
+     # - AWSChatbotSlack
+      - SNS
 
   EnvironmentName:
     Description: The prefix name of the project. ex) gmf -> gmfvpc
@@ -296,6 +303,8 @@ Resources:
           - arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipeline}
           - {CodePipeline: !Ref Pipeline }
       DetailType: !Ref AlertDetailType
+      
+
       EventTypeIds:
         - codepipeline-pipeline-pipeline-execution-failed
         - codepipeline-pipeline-pipeline-execution-canceled
@@ -305,9 +314,11 @@ Resources:
         - codepipeline-pipeline-pipeline-execution-superseded
         - codepipeline-pipeline-manual-approval-needed
       Targets:
-        - TargetType: SNS
+        - TargetType: !Ref NotificationTargetType
           TargetAddress: !Ref PipelineNotificationsTopic
 
+      #https://docs.aws.amazon.com/ko_kr/dtconsole/latest/userguide/concepts.html#concepts-api
+      
 Outputs:
   CodePipelineName:
     Description: The Pipeline name
