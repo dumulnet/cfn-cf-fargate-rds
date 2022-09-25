@@ -1,0 +1,252 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: F/E CI/CD pipeline
+  
+Parameters:
+  GitHubOwner:
+    Type: String
+    Description: The username or org that owns the repo
+
+  GitHubRepo:
+    Type: String
+    Description: The name of the repo as it appears in Github. ex) https://github.com/[GitHubRepo]
+
+  GitHubBranch:
+    Type: String
+    Description: The branch to pull
+    Default: main
+
+  GitHubTokenSecretName:
+    Type: String
+    Description: The name of the Secrets Manager secret that contains a GitHub personal access token
+    Default: Github
+
+  GitHubTokenSecretKeyName:
+    Type: String
+    Description: The JSON key name of the Secrets Manager value
+    Default: PersonalAccessToken
+
+  WebsiteSourceDirectory:
+    Type: String
+    Description: The directory name in the repo where the website source is builded
+    Default: dist
+
+  WebsiteBucket:
+    Type: String
+    Description: The bucket name in the S3 where the website is served
+    AllowedPattern: ^[0-9a-z]+([0-9a-z-.]*[0-9a-z])*$
+    ConstraintDescription: Bucket name can include numbers, lowercase letters, periods (.), and hyphens (-). It cannot start or end with a hyphen (-).
+
+  EnvironmentName:
+    Description: The prefix name of the project. ex) gmf -> gmfvpc
+    Type: String
+
+Resources:
+
+  PipelineBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Delete
+    Properties:
+      BucketName:
+        !Sub
+          - ${EnvironmentName}-site-pipeline-${RandomGUID}
+          - { RandomGUID: !Select [0, !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId ]]]] }
+
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: !Ref AWS::StackName
+      ArtifactStore:
+        Type: S3
+        Location: !Ref PipelineBucket
+      RestartExecutionOnUpdate: true
+      RoleArn: !GetAtt CodePipelineRole.Arn
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: GitHub
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Version: 1
+                Provider: GitHub
+              OutputArtifacts:
+                - Name: source
+              Configuration:
+                Owner: !Ref GitHubOwner
+                Repo: !Ref GitHubRepo
+                Branch: !Ref GitHubBranch
+                OAuthToken: !Sub '{{resolve:secretsmanager:${GitHubTokenSecretName}:SecretString:${GitHubTokenSecretKeyName}}}'
+              RunOrder: 1
+        - Name: Upload
+          Actions:
+            - Name: Site
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              InputArtifacts:
+                - Name: source
+              OutputArtifacts: 
+                - Name: SiteBuild
+              Configuration:
+                ProjectName: !Ref CodeBuildProject
+              RunOrder: 1
+
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [!Ref EnvironmentName, !Ref 'AWS::AccountId', 'CodePipeLine']]
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    DependsOn: CodePipelineRole
+    Properties:
+      Name: !Ref AWS::StackName
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:4.0
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec:
+          !Sub |
+            version: 0.2
+            phases:
+              install:
+                commands:
+                  - npm install
+              build:
+                commands:
+                  - npm run build
+              post_build:
+                commands:
+                  - aws s3 sync ${WebsiteSourceDirectory} s3://${WebsiteBucket} --delete
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [!Ref EnvironmentName, !Ref 'AWS::AccountId', 'BuildProj']]
+
+
+  CodePipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+                - cloudformation.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+
+      # Policies:
+      #   - PolicyName: root
+      #     PolicyDocument:
+      #       Version: "2012-10-17"
+      #       Statement: 
+      #         - 
+      #           Effect: Allow
+      #           Action:
+      #             - "s3:GetObject"
+      #             - "s3:GetObjectVersion"
+      #             - "s3:GetBucketVersioning"
+      #             - "s3:GetObjectAcl"
+      #             - "s3:PutObject"
+      #             - "s3:PutObjectAcl"
+      #             - "s3:PutObjectVersionAcl"                  
+      #           Resource: 
+      #             - !GetAtt PipelineBucket.Arn
+      #             - !Sub
+      #               - ${PipelineBucketArn}/*
+      #               - {PipelineBucketArn: !GetAtt PipelineBucket.Arn}
+      #         - 
+      #           Effect: Allow  
+      #           Action:
+      #             - "codebuild:BatchGetBuilds"
+      #             - "codebuild:StartBuild"
+      #           Resource: "*"
+      #         - 
+      #           Effect: Allow  
+      #           Action:
+      #             - "codecommit:GetRepository"
+      #             - "codecommit:GetBranch"
+      #             - "codecommit:GetCommit"
+      #             - "codecommit:UploadArchive"
+      #             - "codecommit:GetUploadArchiveStatus"
+      #             - "codecommit:CancelUploadArchive"
+      #           Resource: "*"                
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [!Ref EnvironmentName, !Ref 'AWS::AccountId', 'PipelineRole']]
+
+
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    DependsOn: CodePipelineRole
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSCodeBuildAdminAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess 
+
+      # Path: /service-role/
+      # Policies:
+      #   - PolicyName: root
+      #     PolicyDocument:
+      #       Version: "2012-10-17"
+      #       Statement: 
+      #         - 
+      #           Effect: Allow
+      #           Action:
+      #             - "s3:GetObject"
+      #             - "s3:GetObjectVersion"
+      #             - "s3:GetBucketVersioning"
+      #             - "s3:PutObject"
+      #             - "s3:PutObjectAcl"
+      #             - "s3:PutObjectVersionAcl"
+      #           Resource: 
+      #             - !GetAtt PipelineBucket.Arn
+      #             - !Sub
+      #               - ${PipelineBucketArn}/*
+      #               - {PipelineBucketArn: !GetAtt PipelineBucket.Arn}
+      #         - 
+      #           Effect: Allow
+      #           Action:
+      #             - "s3:GetObject"
+      #             - "s3:GetObjectVersion"
+      #             - "s3:GetBucketVersioning"
+      #             - "s3:PutObject"
+      #             - "s3:PutObjectAcl"
+      #             - "s3:PutObjectVersionAcl"
+      #           Resource: 
+      #             - !Ref WebsiteBucketArn
+      #             - !Sub ${WebsiteBucketArn}/*
+      #         -
+      #           Effect: Allow
+      #           Action:
+      #             - "logs:CreateLogGroup"
+      #             - "logs:CreateLogStream"
+      #             - "logs:PutLogEvents"
+      #             - "cloudfront:CreateInvalidation"
+      #           Resource:
+      #             - "*"
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [!Ref EnvironmentName, !Ref 'AWS::AccountId', 'BuildRole']]
+
+
+

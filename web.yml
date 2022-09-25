@@ -117,3 +117,16 @@ Resources:
       AliasTarget:
         DNSName: !GetAtt CloudFrontDistribution.DomainName
         HostedZoneId: Z2FDTNDATAQYW2
+
+Outputs:
+  WebsiteBucket:
+    Description: The bucket name in the S3 where the website is served
+    Value: !Ref S3Bucket
+    Export:
+      Name: !Sub ${AWS::StackName}-WebsiteBucket
+  
+  WebsiteBucketArn:
+    Description: The bucket arn in the S3 where the website is served
+    Value: !GetAtt S3Bucket.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-WebsiteBucketArn

@@ -3,15 +3,20 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: Nested stack for the GenmateField
   
 Parameters:
+
+# Environment configuration
+
   S3BucketName:
-    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-.]*[0-9a-zA-Z])*$
-    ConstraintDescription: Bucket name can include numbers, lowercase letters, uppercase letters, periods (.), and hyphens (-). It cannot start or end with a hyphen (-).
+    AllowedPattern: ^[0-9a-z]+([0-9a-z-.]*[0-9a-z])*$
+    ConstraintDescription: Bucket name can include numbers, lowercase letters, periods (.), and hyphens (-). It cannot start or end with a hyphen (-).
     Description: S3 bucket name for the Nested Stacks. S3 bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).
     Type: String
 
   EnvironmentName:
     Description: The prefix name of the project. ex) gf -> gfvpc
     Type: String
+
+# Network configuration
 
   AvailabilityZones:
     Type: List<AWS::EC2::AvailabilityZone::Name>
@@ -66,6 +71,8 @@ Parameters:
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/16-28
     Default: 10.192.31.0/24
 
+# Domain configuration
+
   DomainName:
     Description: Please enter a domain name.
     Type: String
@@ -84,6 +91,91 @@ Parameters:
     Description: Please enter a sub-domain name for api.
     Type: String
     Default: api
+
+# F/E CI/CD configuration
+
+  GitHubOwner:
+    Type: String
+    Description: The username or org that owns the repo
+
+  GitHubRepo:
+    Type: String
+    Description: The name of the repo as it appears in Github. ex) https://github.com/[GitHubRepo]
+
+  GitHubBranch:
+    Type: String
+    Description: The branch to pull
+    Default: main
+
+  GitHubTokenSecretName:
+    Type: String
+    Description: The name of the Secrets Manager secret that contains a GitHub personal access token
+    Default: Github
+
+  GitHubTokenSecretKeyName:
+    Type: String
+    Description: The JSON key name of the Secrets Manager value
+    Default: PersonalAccessToken
+
+  WebsiteSourceDirectory:
+    Type: String
+    Description: The directory name in the repo where the website source is builded
+    Default: dist
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      -
+        Label:
+          default: "Environment Configuration"
+        Parameters:
+          - EnvironmentName
+          - S3BucketName
+          - GitHubTokenSecretName
+          - GitHubTokenSecretKeyName
+      -
+        Label:
+          default: "Domain Configuration"
+        Parameters:
+          - DomainName
+          - WebSubDomainName
+          - APISubDomainName
+          - WebCertificateArn
+      -
+        Label:
+          default: "Network Configuration"
+        Parameters:
+          - VpcCIDR
+          - PublicSubnet1CIDR
+          - PublicSubnet2CIDR
+          - PrivateSubnet1CIDR
+          - PrivateSubnet2CIDR
+          - PrivateSubnet3CIDR
+          - PrivateSubnet4CIDR
+          - AvailabilityZones
+      -
+        Label:
+          default: "Frontend CI/CD Configuration"
+        Parameters:
+          - GitHubOwner
+          - GitHubRepo
+          - GitHubBranch
+          - WebsiteSourceDirectory
+
+    ParameterLabels:
+      EnvironmentName:
+        default: "What is the project prefix?"
+      S3BucketName:
+        default: "What is the name of the bucket where the template is stored?"
+      DomainName:
+        default: "What is your site name of root domain? ex) example.com (no www)"
+      WebSubDomainName:
+        default: "What is the site domain name? ex) www.example.com"
+      APISubDomainName:
+        default: "What is the API domain name? ex) api.example.com"
+      WebCertificateArn:
+        default: "What is the certificate ARN for setting up HTTPS?"
 
 Resources:
   VpcStack:
@@ -138,9 +230,33 @@ Resources:
         DomainName: !Ref DomainName
         WebSubDomainName: !Ref WebSubDomainName
         HostedZoneId: !Sub
-              - ${NestedStackName}-HostedZoneID
-              - { NestedStackName: !Select [1, !Split ["/", !Ref DnsStack]] }
+          - ${NestedStackName}-HostedZoneID
+          - { NestedStackName: !Select [1, !Split ["/", !Ref DnsStack]] }
         CertificateArn: !Ref WebCertificateArn
       Tags:
         - Key: Name
           Value: !Ref EnvironmentName
+
+  SitePipelineStack:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${S3BucketName}.s3.amazonaws.com/site-pipeline.yml
+      TimeoutInMinutes: 20
+      Parameters:
+        EnvironmentName: !Ref EnvironmentName
+        GitHubOwner: !Ref GitHubOwner
+        GitHubRepo: !Ref GitHubRepo
+        GitHubBranch: !Ref GitHubBranch
+        GitHubTokenSecretName: !Ref GitHubTokenSecretName
+        GitHubTokenSecretKeyName: !Ref GitHubTokenSecretKeyName
+        WebsiteSourceDirectory: !Ref WebsiteSourceDirectory
+        WebsiteBucket: !Sub
+          - ${NestedStackName}-WebsiteBucket
+          - { NestedStackName: !Select [1, !Split ["/", !Ref WebStack]] }
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName
+
+
