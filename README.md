@@ -7,6 +7,7 @@
 1. 루트 도메인이 외부 도메인 관리 기관에 있을 경우 NS 레코드 등록
 1. 루트 도메인에 NS 레코드 등록 시 실시간 대응이 안될 경우 AWS Hosted Zone을 미리 생성하여 NS 레코드 복사 후 리소스 삭제(재 생성 시 동일한 NS 유지)
 1. Github 개발자 토큰 발행 후 AWS Secret Manager에 등록
+1. CI/CD를 위한 웹사이트 Github repository API Github repository 생성(Base 코드)
 1. AWS Chatbot 콘솔에서 Slack으로 초기 권한 부여 흐름을 수행한 다음 콘솔에서 작업 공간 ID를 복사합니다. 자세한 내용은 AWS Chatbot 사용 설명서의 "[Slack으로 AWS Chatbot 설정](https://docs.aws.amazon.com/ko_kr/chatbot/latest/adminguide/what-is.html)"의 1-4단계를 참조하십시오. ![alt=slackworkspace](assets/slack-connection.png) ![alt=slackchannel](assets/slack-channel.png)
 
 ## 상세 절차
@@ -47,3 +48,10 @@
     1. CodePipeline에서 직접 S3 버킷을 타겟으로 배포하는 방법(압축 전송 및 해제): Build 과정이 없는 경우 별도 배포 단계 진행
 - [CodeBuild로 배포하기](https://mckinnel.me/deploy-a-static-blog-quickly-on-aws.html)
 - [CodeDeploy로 배포하기](https://dev.to/giyoungjr/cloudformation-template-to-create-a-cicd-pipeline-for-a-react-application-hosted-in-an-s3-bucket-39g2)
+
+### Chatbot 
+
+- [AWS Chatbot](https://github.com/Sellix/aws-chatbot/blob/master/cloudformation.yml)
+- [CodePipeline 챗봇](https://github.com/symphoniacloud/codepipeline-chatbot/blob/master/template.yaml)
+- [Notification Rule for CodePipeline](https://docs.aws.amazon.com/ko_kr/dtconsole/latest/userguide/concepts.html#concepts-api)
+- [Notification Rule](https://docs.aws.amazon.com/ko_kr/dtconsole/latest/userguide/concepts.html#concepts-api)

@@ -13,8 +13,18 @@ Parameters:
     Type: String
 
   EnvironmentName:
-    Description: The prefix name of the project. ex) gf -> gfvpc
+    Description: The prefix name of the project. example) gf -> gfvpc
     Type: String
+
+  EnvironmentStage:
+    Type: String
+    Description: The environment tag is used to designate the Environment Stage of the associated AWS resource.
+    AllowedValues:
+      - dev
+      - test
+      - pre-prod
+      - prod
+    Default: prod
 
 # Network configuration
 
@@ -131,6 +141,7 @@ Parameters:
       - BASIC
 
 # Chatbot configuration
+
   SiteChatbotConfigurationName:
     Type: String
     Description: (Required) The name of the configuration.
@@ -143,6 +154,79 @@ Parameters:
     Type: String
     Description: (Required) The ID of the Slack workspace authorized with AWS Chatbot. To get the workspace ID, you must perform the initial authorization flow with Slack in the AWS Chatbot console. Then you can copy and paste the workspace ID from the console. For more details, see steps 1-4 in Setting Up AWS Chatbot with Slack in the AWS Chatbot User Guide.
 
+# API configuration
+
+  # ParentWASStack:
+  #   Description: 'Provide Stack name of parent Amazon Linux bastion host stack based on VPC-SSH-Bastion yaml template. Refer Cloudformation dashboard in AWS Console to get this.'
+  #   Type: String
+  #   MinLength: '1'
+  #   MaxLength: '128'
+  #   AllowedPattern: '^[a-zA-Z]+[0-9a-zA-Z\-]*$'
+  
+  # DB configuration
+
+  DBName:
+    Description: Database Name
+    Type: String
+    MinLength: '1'
+    MaxLength: '64'
+    AllowedPattern: "^[a-zA-Z]+[0-9a-zA-Z_]*$" 
+    ConstraintDescription: Must start with a letter. Only numbers, letters, and _ accepted. max length 64 characters 
+    
+  DBUsername:
+    Description: Database master username(No admin)
+    Type: String
+    MinLength: '1'
+    MaxLength: '16'
+    AllowedPattern: "^[a-zA-Z]+[0-9a-zA-Z_]*$"
+    ConstraintDescription: Must start with a letter. Only numbers, letters, and _ accepted. max length 16 characters, MasterUsername admin cannot be used as it is a reserved word used by the engine 
+     
+  DBEngineVersion:
+    Description: Select Database Engine Version
+    Type: String
+    Default: 13.7
+    AllowedValues:
+      - 11.16
+      - 12.11
+      - 13.7
+      - 14.3
+     
+  DBInstanceClass:
+    Default: db.t4g.medium
+    Description: Database Instance Class
+    Type: String
+    AllowedValues:
+    - db.t4g.medium
+    - db.t4g.large
+    - db.r5.large
+    - db.r5.xlarge
+    - db.r5.2xlarge
+    - db.r5.4xlarge
+    - db.r5.8xlarge
+    - db.r5.12xlarge
+    - db.r5.16xlarge
+    - db.r5.24xlarge
+    - db.r6g.large
+    - db.r6g.xlarge
+    - db.r6g.2xlarge
+    - db.r6g.4xlarge
+    - db.r6g.8xlarge
+    - db.r6g.12xlarge
+    - db.r6g.16xlarge
+    - db.x2g.large
+    - db.x2g.xlarge
+    - db.x2g.2xlarge
+    - db.x2g.4xlarge
+    - db.x2g.8xlarge
+    - db.x2g.12xlarge
+    - db.x2g.16xlarge
+    
+  NotificationList:
+    Type: String
+    Description: The Email notification list is used to configure a SNS topic for sending cloudwatch alarm and RDS Event notifications
+    AllowedPattern: '^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$'
+    ConstraintDescription: provide a valid email address.
+ 
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -151,6 +235,7 @@ Metadata:
           default: "Environment Configuration"
         Parameters:
           - EnvironmentName
+          - EnvironmentStage
           - S3BucketName
           - GitHubTokenSecretName
           - GitHubTokenSecretKeyName
@@ -186,6 +271,15 @@ Metadata:
           - SiteChatbotConfigurationName
           - SiteSlackChannelId
           - SiteSlackWorkspaceId
+      -
+        Label:
+          default: "DB Configuration"
+        Parameters:
+          - DBName
+          - DBUsername
+          - DBEngineVersion
+          - DBInstanceClass
+          - NotificationList
 
     ParameterLabels:
       EnvironmentName:
@@ -201,6 +295,8 @@ Metadata:
       WebCertificateArn:
         default: "What is the certificate ARN for setting up HTTPS?"
 
+
+    
 Resources:
   VpcStack:
     DeletionPolicy: Delete
@@ -303,3 +399,24 @@ Resources:
         - Key: Name
           Value: !Ref EnvironmentName
 
+  DBStack:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${S3BucketName}.s3.amazonaws.com/aurora-postgres-db-cluster.yml
+      TimeoutInMinutes: 20
+      Parameters:
+        ParentVPCStack: !Sub
+          - ${NestedStackName}
+          - { NestedStackName: !Select [1, !Split ["/", !Ref VpcStack]] }
+        DBName: !Ref DBName
+        DBUsername: !Ref DBUsername 
+        DBEngineVersion: !Ref DBEngineVersion 
+        DBInstanceClass: !Ref DBInstanceClass 
+        LambdaBootStrapS3Bucket: !Ref S3BucketName
+        EnvironmentStage: !Ref EnvironmentStage
+        NotificationList: !Ref NotificationList
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName
