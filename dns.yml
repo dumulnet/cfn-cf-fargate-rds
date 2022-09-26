@@ -21,8 +21,17 @@ Parameters:
     Description: The prefix name of the project. ex) gf -> gfvpc
     Type: String
 
+  HostedZoneId:
+    Description: Host Zone ID
+    Type: AWS::Route53::HostedZone::Id
+
+Conditions:
+  ExistHostedZoneId: !Not [!Equals [!Ref HostedZoneId, ""]]
+  NotExistHostedZoneId: !Not [Condition: ExistHostedZoneId]
+
 Resources:
   DNS:
+    Condition: NotExistHostedZoneId
     Type: AWS::Route53::HostedZone
     Properties:
       HostedZoneConfig:
@@ -39,7 +48,7 @@ Resources:
       DomainValidationOptions:
         -
           DomainName: !Sub ${WebSubDomainName}.${DomainName}
-          HostedZoneId: !Ref DNS
+          HostedZoneId: !If [ExistHostedZoneId, !Ref HostedZoneId, !Ref DNS]
       ValidationMethod: DNS
 
   APICertificate:
@@ -49,17 +58,18 @@ Resources:
       DomainValidationOptions:
         -
           DomainName: !Sub ${APISubDomainName}.${DomainName}
-          HostedZoneId: !Ref DNS
+          HostedZoneId: !If [ExistHostedZoneId, !Ref HostedZoneId, !Ref DNS]
       ValidationMethod: DNS
 
 Outputs:
   HostedZoneID:
     Description: Hosted Zone ID for domain
-    Value: !Ref DNS
+    Value: !If [ExistHostedZoneId, !Ref HostedZoneId, !Ref DNS]
     Export:
       Name: !Sub ${AWS::StackName}-HostedZoneID
   
   NameServers:
+    Condition: NotExistHostedZoneId
     Description: The list of name server for the domain
     Value: !Join [ ",", !GetAtt DNS.NameServers ]
     Export:

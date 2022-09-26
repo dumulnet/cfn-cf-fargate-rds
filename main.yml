@@ -83,6 +83,10 @@ Parameters:
 
 # Domain configuration
 
+  HostedZoneId:
+    Description: Please select a Hosted Zone.(You must create domain certificates from us-east-1 before)
+    Type: AWS::Route53::HostedZone::Id
+
   DomainName:
     Description: Please enter a domain name.
     Type: String
@@ -243,6 +247,7 @@ Metadata:
         Label:
           default: "Domain Configuration"
         Parameters:
+          - HostedZoneId
           - DomainName
           - WebSubDomainName
           - APISubDomainName
@@ -334,6 +339,7 @@ Resources:
         DomainName: !Ref DomainName
         WebSubDomainName: !Ref WebSubDomainName
         APISubDomainName: !Ref APISubDomainName
+        HostedZoneId: !Ref HostedZoneId
       Tags:
         - Key: Name
           Value: !Ref EnvironmentName
