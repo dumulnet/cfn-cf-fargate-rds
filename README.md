@@ -9,6 +9,7 @@
 1. Github 개발자 설정 > Personal Token 발행 후 AWS Secret Manager에 등록
 1. CI/CD를 위한 웹사이트 Github repository API Github repository 생성(Base 코드)
 1. AWS Chatbot 콘솔에서 Slack으로 초기 권한 부여 흐름을 수행한 다음 콘솔에서 작업 공간 ID를 복사합니다. 자세한 내용은 AWS Chatbot 사용 설명서의 "[Slack으로 AWS Chatbot 설정](https://docs.aws.amazon.com/ko_kr/chatbot/latest/adminguide/what-is.html)"의 1-4단계를 참조하십시오.
+1. API용 Docker 이미지 생성 후 Image 주소 복사
 
 ![alt=slackworkspace](assets/slack-connection.png) 
 ![alt=slackchannel](assets/slack-channel.png)
@@ -20,6 +21,25 @@
 1. Route53 > 생성된 Hosted Zone 선택 > NS 레코드 복사(4개)
 1. 외부 도메인 관리 시스템 접속 후 Web, API를 위한 서브 도메인용 NS 레코드 붙여넣기
 1. AWS Console > us-east-1 > ACM > 인증서 검증(DNS)이 정상적으로 확인되었는지 체크합니다.
+
+### API용 Docker 이미지 생성
+1. AWS Console > ap-northeast-2 > ECR > Repository 생성 > '이름' 지정
+1. Command Line에서 Docker 최초 이미지 생성 후 Push
+1. AWS Console > ap-northeast-2 > ECR > Repositories > Image > 업로드된 Image 주소 복사
+```
+//SSO Login > Profile 생성
+$ aws configure sso
+$ aws ecr get-login-password --region ap-northeast-2 --profile '프로파일' | docker login --username AWS --password-stdin [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com
+
+$ cd [Working directory]
+$ docker build -t "ECR 리포 이름" .
+
+//Tag docker image
+$ docker tag [ECR 리포 이름]:latest [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com.amazonaws.com/[ECR 리포 이름]:latest
+
+//Push image
+$ docker push [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/[ECR 리포 이름]:latest
+```
 
 ### 전체 Infra 생성
 1. AWS Console > S3 > CloudFormation 작업용 버킷을 생성합니다.(리전 확인)
@@ -61,3 +81,7 @@
 - [CodePipeline 챗봇](https://github.com/symphoniacloud/codepipeline-chatbot/blob/master/template.yaml)
 - [Notification Rule for CodePipeline](https://docs.aws.amazon.com/ko_kr/dtconsole/latest/userguide/concepts.html#concepts-api)
 - [Notification Rule](https://docs.aws.amazon.com/ko_kr/dtconsole/latest/userguide/concepts.html#concepts-api)
+
+### Fargate CI/CD
+
+- [AWS Fargate](https://github.com/dumulnet/aws-cloudformation-reference)
