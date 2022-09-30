@@ -11,6 +11,7 @@
 1. AWS Chatbot 콘솔에서 Slack으로 초기 권한 부여 흐름을 수행한 다음 콘솔에서 작업 공간 ID를 복사합니다. 자세한 내용은 AWS Chatbot 사용 설명서의 "[Slack으로 AWS Chatbot 설정](https://docs.aws.amazon.com/ko_kr/chatbot/latest/adminguide/what-is.html)"의 1-4단계를 참조하십시오.
 1. API용 Docker 이미지 생성 후 Image 주소 복사
 
+![webhook_permission](https://user-images.githubusercontent.com/112446703/193232592-5fecb03d-2182-419f-acc0-eab91c5aa756.png)
 ![alt=slackworkspace](assets/slack-connection.png) 
 ![alt=slackchannel](assets/slack-channel.png)
 
