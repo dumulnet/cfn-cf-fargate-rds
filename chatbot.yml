@@ -54,15 +54,15 @@ Resources:
       SlackChannelId: !Ref SlackChannelId
       SlackWorkspaceId: !Ref SlackWorkspaceId
       SnsTopicArns: 
-        - !ImportValue
-            Fn::Sub: ${SnsTopicArns}
+        - Fn::ImportValue: !Ref SnsTopicArns
+
       UserRoleRequired: !Ref UserRoleRequired
 
 
   ChatbotIamRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: stack-drift-detected-chatbot-role
+      RoleName: !Sub ${AWS::StackName}-chatbot-role
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:

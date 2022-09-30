@@ -116,6 +116,10 @@ Parameters:
     Type: String
     Description: The name of the repo as it appears in Github. ex) https://github.com/[GitHubRepo]
 
+  GitHubRepoAPI:
+    Type: String
+    Description: The name of the api repo as it appears in Github. ex) https://github.com/[GitHubRepo]
+
   GitHubBranch:
     Type: String
     Description: The branch to pull
@@ -143,6 +147,17 @@ Parameters:
     AllowedValues:
       - FULL
       - BASIC
+
+# API
+
+  MaxContainers:
+    Type: Number
+    Description: Max containers to scale to
+    Default: 1
+
+  Image:
+    Type: String
+    Description: URI of docker image you would like to use
 
 # Chatbot configuration
 
@@ -270,6 +285,7 @@ Metadata:
         Parameters:
           - GitHubOwner
           - GitHubRepo
+          - GitHubRepoAPI
           - GitHubBranch
           - WebsiteSourceDirectory
           - SiteDeployAlertDetailType
@@ -285,6 +301,12 @@ Metadata:
           - DBEngineVersion
           - DBInstanceClass
           - NotificationList
+      -
+        Label:
+          default: "API Configuration"
+        Parameters:
+          - MaxContainers
+          - Image
 
     ParameterLabels:
       EnvironmentName:
@@ -299,6 +321,9 @@ Metadata:
         default: "What is the API domain name? ex) api.example.com"
       WebCertificateArn:
         default: "What is the certificate ARN for setting up HTTPS?"
+      Image:
+        default: "What is the URI of docker image?"
+
 
 
     
@@ -386,25 +411,6 @@ Resources:
         - Key: Name
           Value: !Ref EnvironmentName
 
-  ChatbotStack:
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub https://${S3BucketName}.s3.amazonaws.com/chatbot.yml
-      TimeoutInMinutes: 20
-      Parameters:
-        EnvironmentName: !Ref EnvironmentName
-        ConfigurationName: !Ref SiteChatbotConfigurationName
-        SlackChannelId: !Ref SiteSlackChannelId
-        SlackWorkspaceId: !Ref SiteSlackWorkspaceId 
-        SnsTopicArns: !Sub
-          - ${NestedStackName}-SNSTopicArn
-          - { NestedStackName: !Select [1, !Split ["/", !Ref SitePipelineStack]] }
-      Tags:
-        - Key: Name
-          Value: !Ref EnvironmentName
-
   DBStack:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
@@ -423,6 +429,60 @@ Resources:
         LambdaBootStrapS3Bucket: !Ref S3BucketName
         EnvironmentStage: !Ref EnvironmentStage
         NotificationList: !Ref NotificationList
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName
+
+  ApiPipelineStack:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${S3BucketName}.s3.amazonaws.com/api-pipeline.yml
+      TimeoutInMinutes: 20
+      Parameters:
+        EnvironmentName: !Ref EnvironmentName
+        VpcStack: !Sub
+          - ${NestedStackName}
+          - { NestedStackName: !Select [1, !Split ["/", !Ref VpcStack]] }
+        GitHubOwner: !Ref GitHubOwner
+        GitHubRepo: !Ref GitHubRepoAPI
+        GitHubBranch: !Ref GitHubBranch
+        GitHubTokenSecretName: !Ref GitHubTokenSecretName
+        GitHubTokenSecretKeyName: !Ref GitHubTokenSecretKeyName
+        MaxContainers: !Ref MaxContainers
+        Image: !Ref Image
+        DomainName: !Ref DomainName
+        APISubDomainName: !Ref APISubDomainName
+        AlertDetailType: !Ref SiteDeployAlertDetailType
+        SnsTopicArns: !Sub
+          - ${NestedStackName}-SNSTopicArn
+          - { NestedStackName: !Select [1, !Split ["/", !Ref SitePipelineStack]] }
+        HostedZoneId: !Sub
+          - ${NestedStackName}-HostedZoneID
+          - { NestedStackName: !Select [1, !Split ["/", !Ref DnsStack]] }
+        APICertificateId:  !Sub
+          - ${NestedStackName}-APICertificateID
+          - { NestedStackName: !Select [1, !Split ["/", !Ref DnsStack]] }
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName
+
+  ChatbotStack:
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${S3BucketName}.s3.amazonaws.com/chatbot.yml
+      TimeoutInMinutes: 20
+      Parameters:
+        EnvironmentName: !Ref EnvironmentName
+        ConfigurationName: !Ref SiteChatbotConfigurationName
+        SlackChannelId: !Ref SiteSlackChannelId
+        SlackWorkspaceId: !Ref SiteSlackWorkspaceId 
+        SnsTopicArns: !Sub
+              - ${NestedStackName}-SNSTopicArn
+              - { NestedStackName: !Select [1, !Split ["/", !Ref SitePipelineStack]] }
       Tags:
         - Key: Name
           Value: !Ref EnvironmentName

@@ -303,8 +303,6 @@ Resources:
           - arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${CodePipeline}
           - {CodePipeline: !Ref Pipeline }
       DetailType: !Ref AlertDetailType
-      
-
       EventTypeIds:
         - codepipeline-pipeline-pipeline-execution-failed
         - codepipeline-pipeline-pipeline-execution-canceled
