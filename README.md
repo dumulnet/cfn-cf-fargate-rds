@@ -51,7 +51,7 @@ $ docker push [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/[ECR 리포 �
 
 ## 웹호스팅 스택
 
-[![alt=web](assets/web/web.png)](assets/web/index.html)
+[![alt=web](assets/web/web.png)](htts://dumulnet.github.io/cfn-cf-fargate-rds/web/index.html)
 
 
 ## 웹 CI/CD 파이프라인 스택
