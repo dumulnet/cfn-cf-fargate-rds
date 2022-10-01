@@ -53,12 +53,12 @@ $ docker push [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/[ECR 리포 �
 
 ### root 스택
 
-[![alt=root](assets/main/main.png)](https//dumulnet.github.io/cfn-cf-fargate-rds/main)
+[![alt=root](assets/main/main.png)](https://dumulnet.github.io/cfn-cf-fargate-rds/main)
 
 ### VPC 스택
 
 ![alt=vpc](assets/vpc/vpc.png)
-[HTML 버전](https//dumulnet.github.io/cfn-cf-fargate-rds/vpc)
+[HTML 버전](https://dumulnet.github.io/cfn-cf-fargate-rds/vpc)
 
 ### DNS 스택
 
