@@ -57,39 +57,32 @@ $ docker push [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/[ECR 리포 �
 
 ### VPC 스택
 
-![alt=vpc](assets/vpc/vpc.png)
-[HTML 버전](https://dumulnet.github.io/cfn-cf-fargate-rds/vpc)
+[![alt=vpc](assets/vpc/vpc.png)](https://dumulnet.github.io/cfn-cf-fargate-rds/vpc)
 
 ### DNS 스택
 
-![alt=dns](assets/web/dns.png)
-[HTML 버전](https//dumulnet.github.io/cfn-cf-fargate-rds/dns)
+[![alt=dns](assets/dns/dns.png)](https://dumulnet.github.io/cfn-cf-fargate-rds/dns)
 
 ## 웹호스팅 스택
 
-![alt=web](assets/web/web.png)
-[HTML 버전](https//dumulnet.github.io/cfn-cf-fargate-rds/web)
+[![alt=web](assets/web/web.png)](https://dumulnet.github.io/cfn-cf-fargate-rds/web)
 
 ## 웹 CI/CD 파이프라인 스택
 
-![alt=site-pipeline](assets/site-pipeline/site-pipeline.png)
-[HTML 버전](https//dumulnet.github.io/cfn-cf-fargate-rds/site-pipeline)
+[![alt=site-pipeline](assets/site-pipeline/site-pipeline.png)(https://dumulnet.github.io/cfn-cf-fargate-rds/site-pipeline)
 
 ## DB Cluster 스택
 
-![alt=aurora-db](assets/aurora-postgres-db-cluster/aurora-postgres-db-cluster.shorts.png)
-[HTML 버전](https//dumulnet.github.io/cfn-cf-fargate-rds/aurora-postres-db-cluster)
+[![alt=aurora-db](assets/aurora-postgres-db-cluster/aurora-postgres-db-cluster.shorts.png)](https://dumulnet.github.io/cfn-cf-fargate-rds/aurora-postres-db-cluster)
 
 
 ## API CI/CD 파이프라인 스택
 
-![alt=api](assets/api-pipeline/api-pipeline.shorts.png)
-[HTML 버전](https//dumulnet.github.io/cfn-cf-fargate-rds/api-pipeline)
+[![alt=api](assets/api-pipeline/api-pipeline.shorts.png)](https://dumulnet.github.io/cfn-cf-fargate-rds/api-pipeline)
 
 ## Chatbot 스택
 
-![alt=chatbot](assets/chatbot/chatbot.png)
-[HTML 버전](https//dumulnet.github.io/cfn-cf-fargate-rds/chatbot)
+[![alt=chatbot](assets/chatbot/chatbot.png)](https://dumulnet.github.io/cfn-cf-fargate-rds/chatbot)
 
 
 ## CloudFormation 작업 가이드
