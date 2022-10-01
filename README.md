@@ -43,6 +43,7 @@ $ docker push [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/[ECR 리포 �
 ```
 
 ### 전체 Infra 생성
+
 1. AWS Console > S3 > CloudFormation 작업용 버킷을 생성합니다.(리전 확인)
 1. main.yml 파일을 제외하고 모든 yml 파일을 1번에서 생성한 버킷에 업로드합니다.
 1. AWS Console > CloudFormation 에서 Stack 생성을 누르고 main.yml 파일을 선택합니다.
