@@ -69,7 +69,7 @@ $ docker push [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/[ECR 리포 �
 
 ## 웹 CI/CD 파이프라인 스택
 
-[![alt=site-pipeline](assets/site-pipeline/site-pipeline.png)(https://dumulnet.github.io/cfn-cf-fargate-rds/site-pipeline)
+[![alt=site-pipeline](assets/site-pipeline/site-pipeline.png)](https://dumulnet.github.io/cfn-cf-fargate-rds/site-pipeline)
 
 ## DB Cluster 스택
 
