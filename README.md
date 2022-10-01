@@ -2,7 +2,7 @@
 
 ## 사전 가정
 
-1. cfn 템플릿 파일 저장용 버킷 생성
+1. Clouformation 템플릿 파일 저장용 S3 버킷을 생성합니다.
 1. TSL/SSL 인증서를 위한(CloudFront) ACM(us-east-1) 인증서 생성(또는 dns.yml 활용)
 1. 루트 도메인이 외부 도메인 관리 기관에 있을 경우 NS 레코드 등록
 1. 루트 도메인에 NS 레코드 등록 시 실시간 대응이 안될 경우 AWS Hosted Zone을 미리 생성하여 NS 레코드 복사 후 리소스 삭제(재 생성 시 동일한 NS 유지)
@@ -56,6 +56,7 @@ $ docker push [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/[ECR 리포 �
 
 ## CloudFormation 작업 가이드
 
+- [VS Code용 YAML 편집 확장 프로그램 설치](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)
 - [Level up CloudFormation with VS Code](https://towardsthecloud.com/level-up-cloudformation-vscode)
 - [AWS CloudFormation Workshop](https://catalog.workshops.aws/cfn101/en-US)
 - [공식 도움말](https://docs.aws.amazon.com/ko_kr/AWSCloudFormation/latest/UserGuide/Welcome.html)
