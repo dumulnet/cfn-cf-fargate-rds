@@ -51,13 +51,14 @@ $ docker push [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/[ECR 리포 �
 
 ## 웹호스팅 스택
 
-![alt=webStack](assets/web-stack.png)
+[![alt=web](assets/web/web.png)](assets/web/index.html)
+
 
 ## 웹 CI/CD 파이프라인 스택
 
 ## CloudFormation 작업 가이드
 
-- [VS Code용 YAML 편집 확장 프로그램 설치](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)
+- [CloudFormation 아키텍처 다이어그램](https://github.com/mhlabs/cfn-diagram)
 - [Level up CloudFormation with VS Code](https://towardsthecloud.com/level-up-cloudformation-vscode)
 - [AWS CloudFormation Workshop](https://catalog.workshops.aws/cfn101/en-US)
 - [공식 도움말](https://docs.aws.amazon.com/ko_kr/AWSCloudFormation/latest/UserGuide/Welcome.html)
