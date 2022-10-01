@@ -56,7 +56,6 @@ $ docker push [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/[ECR 리포 �
 
 ## CloudFormation 작업 가이드
 
-
 - [VS Code용 YAML 편집 확장 프로그램 설치](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)
 - [Level up CloudFormation with VS Code](https://towardsthecloud.com/level-up-cloudformation-vscode)
 - [AWS CloudFormation Workshop](https://catalog.workshops.aws/cfn101/en-US)
