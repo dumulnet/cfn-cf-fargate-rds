@@ -9,7 +9,7 @@
 1. Github 개발자 설정 > Personal Token 발행 후 AWS Secret Manager에 등록
 1. CI/CD를 위한 웹사이트 Github repository API Github repository 생성(Base 코드)
 1. AWS Chatbot 콘솔에서 Slack으로 초기 권한 부여 흐름을 수행한 다음 콘솔에서 작업 공간 ID를 복사합니다. 자세한 내용은 AWS Chatbot 사용 설명서의 "[Slack으로 AWS Chatbot 설정](https://docs.aws.amazon.com/ko_kr/chatbot/latest/adminguide/what-is.html)"의 1-4단계를 참조하십시오.
-1. API용 Docker 이미지 생성 후 Image 주소 복사
+1. API용 Docker 이미지 생성 후 Docker Image 주소(ECR, DockerHub) 복사(없을 경우 생성 필요)
 
 ![webhook_permission](https://user-images.githubusercontent.com/112446703/193232592-5fecb03d-2182-419f-acc0-eab91c5aa756.png)
 ![alt=slackworkspace](assets/slack-connection.png) 
@@ -48,6 +48,11 @@ $ docker push [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/[ECR 리포 �
 1. main.yml 파일을 제외하고 모든 yml 파일을 1번에서 생성한 버킷에 업로드합니다.
 1. AWS Console > CloudFormation 에서 Stack 생성을 누르고 main.yml 파일을 선택합니다.
 1. cfn 템플릿 변수에 값을 입력하고 생성합니다.
+1. 다음을 선택하고 필요한 경우 태그를 제공합니다.
+1. 다음을 선택하고 스택 세부 정보를 검토합니다.
+1. 이 템플릿은 IAM 역할 및 정책을 생성하므로 승인 확인란을 선택합니다.
+1. 스택 생성을 선택합니다.
+1. 스택을 열고 리소스 탭으로 이동하여 리소스 생성 상태를 추적합니다.
 
 ## 기본 스택
 
@@ -73,7 +78,7 @@ $ docker push [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/[ECR 리포 �
 
 ## DB Cluster 스택
 
-[![alt=aurora-db](assets/aurora-postgres-db-cluster/aurora-postgres-db-cluster.shorts.png)](https://dumulnet.github.io/cfn-cf-fargate-rds/aurora-postres-db-cluster)
+[![alt=aurora-db](assets/aurora-postgres-db-cluster/aurora-postgres-db-cluster.shorts.png)](https://dumulnet.github.io/cfn-cf-fargate-rds/aurora-postgres-db-cluster)
 
 
 ## API CI/CD 파이프라인 스택
