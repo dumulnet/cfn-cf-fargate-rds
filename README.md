@@ -49,12 +49,49 @@ $ docker push [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/[ECR 리포 �
 1. AWS Console > CloudFormation 에서 Stack 생성을 누르고 main.yml 파일을 선택합니다.
 1. cfn 템플릿 변수에 값을 입력하고 생성합니다.
 
+## 기본 스택
+
+### root 스택
+
+![alt=root](assets/main/main.png)
+[HTML 버전](htts://dumulnet.github.io/cfn-cf-fargate-rds/main)
+
+### VPC 스택
+
+![alt=vpc](assets/vpc/vpc.png)
+[HTML 버전](htts://dumulnet.github.io/cfn-cf-fargate-rds/vpc)
+
+### DNS 스택
+
+![alt=dns](assets/web/dns.png)
+[HTML 버전](htts://dumulnet.github.io/cfn-cf-fargate-rds/dns)
+
 ## 웹호스팅 스택
 
-[![alt=web](assets/web/web.png)](htts://dumulnet.github.io/cfn-cf-fargate-rds/web/index.html)
-
+![alt=web](assets/web/web.png)
+[HTML 버전](htts://dumulnet.github.io/cfn-cf-fargate-rds/web)
 
 ## 웹 CI/CD 파이프라인 스택
+
+![alt=site-pipeline](assets/site-pipeline/site-pipeline.png)
+[HTML 버전](htts://dumulnet.github.io/cfn-cf-fargate-rds/site-pipeline)
+
+## DB Cluster 스택
+
+![alt=aurora-db](assets/aurora-postgres-db-cluster/aurora-postgres-db-cluster.shorts.png)
+[HTML 버전](htts://dumulnet.github.io/cfn-cf-fargate-rds/aurora-postres-db-cluster)
+
+
+## API CI/CD 파이프라인 스택
+
+![alt=api](assets/api-pipeline/api-pipeline.shorts.png)
+[HTML 버전](htts://dumulnet.github.io/cfn-cf-fargate-rds/api-pipeline)
+
+## Chatbot 스택
+
+![alt=chatbot](assets/chatbot/chatbot.png)
+[HTML 버전](htts://dumulnet.github.io/cfn-cf-fargate-rds/chatbot)
+
 
 ## CloudFormation 작업 가이드
 
