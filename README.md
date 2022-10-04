@@ -54,6 +54,15 @@ $ docker push [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/[ECR 리포 �
 1. 스택 생성을 선택합니다.
 1. 스택을 열고 리소스 탭으로 이동하여 리소스 생성 상태를 추적합니다.
 
+### 관리 Infra 생성
+
+1. RDS 자동 기동 및 중지를 위해 auto-start-stop-rds.yml 스택을 생성
+1. RDS의 Tag 설정
+    1. 고정 시간 기동/중지를 위한 Tag Key: AutoStart = true/false, AutoStop = true/false
+    1. 개별 시간 기동/중지를 위한 Tag Key: StartWeekDay = HH:MM, StopWeekDay = HH:MM, StartWeekEnd = HH:MM, StopWeekEnd = HH:MM
+    1. 주기적인 Tag 체크를 위한 스택 파라미터 설정 ![alt=rds-onoff](assets/rds-autostsp.png)
+    1. Tag 지정을 위해서는 해당 RDS 인스턴스가 기동 상태이어야 함
+
 ## 기본 스택
 
 ### root 스택
@@ -83,11 +92,15 @@ $ docker push [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/[ECR 리포 �
 
 ## API CI/CD 파이프라인 스택
 
-[![alt=api](assets/api-pipeline/api-pipeline.shorts.png)](https://dumulnet.github.io/cfn-cf-fargate-rds/api-pipeline)
+[![alt=api](assets/api-pipeline/api-pipeline.shorts.png)](https://dumulnet.github.io/cfn-cf-fargate-rds/api-pipeline)g
 
 ## Chatbot 스택
 
 [![alt=chatbot](assets/chatbot/chatbot.png)](https://dumulnet.github.io/cfn-cf-fargate-rds/chatbot)
+
+## 인프라 관리 스팩 생성
+
+### RDS 자동 기동 및 중지
 
 
 ## CloudFormation 작업 가이드
@@ -123,3 +136,7 @@ $ docker push [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/[ECR 리포 �
 ### Fargate CI/CD
 
 - [AWS Fargate](https://github.com/dumulnet/aws-cloudformation-reference)
+
+### RDS Auto Start & Stop
+
+- [Automate Start and Stop of Amazon RDS Instances to Save costs](https://github.com/dumulnet/aws-cfn-save-costs-auto-start-stop-rds)

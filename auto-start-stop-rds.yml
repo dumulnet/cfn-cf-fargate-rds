@@ -102,7 +102,7 @@ Resources:
         - Arn
       Handler: index.lambda_handler
       Timeout: 60
-      ReservedConcurrentExecutions: 10
+      #ReservedConcurrentExecutions: 10
       Code:
         ZipFile: |
             import boto3
@@ -216,7 +216,7 @@ Resources:
         - Arn
       Handler: index.lambda_handler
       Timeout: 60
-      ReservedConcurrentExecutions: 10
+      #ReservedConcurrentExecutions: 10
       Code:
         ZipFile: |
             import boto3
@@ -330,7 +330,7 @@ Resources:
         - Arn
       Handler: index.lambda_handler
       Timeout: 60
-      ReservedConcurrentExecutions: 10
+      #ReservedConcurrentExecutions: 10
       Environment:
           Variables:
             REGION_TZ:
@@ -493,7 +493,7 @@ Resources:
         - Arn
       Handler: index.lambda_handler
       Timeout: 60
-      ReservedConcurrentExecutions: 10
+      #ReservedConcurrentExecutions: 10
       Environment:
           Variables:
             REGION_TZ:
@@ -686,7 +686,7 @@ Resources:
         - Arn
       Handler: index.lambda_handler
       Timeout: 60
-      ReservedConcurrentExecutions: 10
+      #ReservedConcurrentExecutions: 10
       Environment:
           Variables:
             REGION_TZ:
@@ -849,7 +849,7 @@ Resources:
         - Arn
       Handler: index.lambda_handler
       Timeout: 60
-      ReservedConcurrentExecutions: 10
+      #ReservedConcurrentExecutions: 10
       Environment:
           Variables:
             REGION_TZ:
