@@ -9,7 +9,7 @@
 1. Github 개발자 설정 > Personal Token 발행 후 AWS Secret Manager에 등록
 1. CI/CD를 위한 웹사이트 Github repository API Github repository 생성(Base 코드)
 1. AWS Chatbot 콘솔에서 Slack으로 초기 권한 부여 흐름을 수행한 다음 콘솔에서 작업 공간 ID를 복사합니다. 자세한 내용은 AWS Chatbot 사용 설명서의 "[Slack으로 AWS Chatbot 설정](https://docs.aws.amazon.com/ko_kr/chatbot/latest/adminguide/what-is.html)"의 1-4단계를 참조하십시오.
-1. API용 Docker 이미지 생성 후 Docker Image 주소(ECR, DockerHub) 복사(없을 경우 생성 필요)
+1. API용 Docker 이미지 생성 후 Docker Image 주소(ECR, DockerHub) 복사([없을 경우 생성 필요](https://github.com/dumulnet/cfn-cf-fargate-rds#api%EC%9A%A9-docker-%EC%9D%B4%EB%AF%B8%EC%A7%80-%EC%83%9D%EC%84%B1))
 
 ![webhook_permission](https://user-images.githubusercontent.com/112446703/193232592-5fecb03d-2182-419f-acc0-eab91c5aa756.png)
 ![alt=slackworkspace](assets/slack-connection.png) 
