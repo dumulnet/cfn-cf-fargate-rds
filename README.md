@@ -36,7 +36,7 @@ $ cd [Working directory]
 $ docker build -t "ECR 리포 이름" .
 
 //Tag docker image
-$ docker tag [ECR 리포 이름]:latest [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com.amazonaws.com/[ECR 리포 이름]:latest
+$ docker tag [ECR 리포 이름]:latest [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/[ECR 리포 이름]:latest
 
 //Push image
 $ docker push [AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/[ECR 리포 이름]:latest
