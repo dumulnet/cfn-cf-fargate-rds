@@ -133,29 +133,19 @@ Resources:
       Artifacts:
         Type: CODEPIPELINE
       Environment:
+        EnvironmentVariables:
+          - Name: WebsiteSourceDirectory
+            Value:
+              Ref: WebsiteSourceDirectory
+          - Name: HostedBucket
+            Value: !ImportValue
+              Fn::Sub: "${WebsiteBucket}"
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:6.0
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub
-          - |
-            version: 0.2
-            phases:
-              install:
-                commands:
-                  - npm install
-              build:
-                commands:
-                  - npm run build
-              post_build:
-                commands:
-                  - aws s3 sync ${WebsiteSourceDirectory} s3://${HostedBucket} --delete
-                  - echo "If cloudfront invalidation is needed ..."
-                  - echo "aws cloudfront create-invalidation --distribution-id [CloudFront distribution-id] --paths '/*.*'"
-
-          - HostedBucket: !ImportValue
-              Fn::Sub: "${WebsiteBucket}"
+        BuildSpec: buildspec.yml
       Tags:
         - Key: Name
           Value: !Join ['-', [!Ref EnvironmentName, !Ref 'AWS::AccountId', 'BuildProj']]
